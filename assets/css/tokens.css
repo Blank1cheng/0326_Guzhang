@@ -1,0 +1,75 @@
+:root {
+  --font-ui: "Microsoft YaHei UI", "Segoe UI", "PingFang SC", sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", monospace;
+
+  --bg-page: #f5f8fe;
+  --bg-page-strong: #edf3ff;
+  --bg-panel: #ffffff;
+  --bg-panel-soft: #f8fbff;
+  --bg-panel-muted: #f1f6ff;
+  --bg-overlay: rgba(15, 32, 70, 0.18);
+
+  --text-strong: #10244f;
+  --text-main: #1f3b73;
+  --text-muted: #6078a5;
+  --text-soft: #8da1c3;
+
+  --line-base: #d8e4fb;
+  --line-strong: #b8cdef;
+  --line-deep: #8ca9d7;
+
+  --accent-blue: #1e40af;
+  --accent-blue-strong: #17358e;
+  --accent-blue-soft: #dbeafe;
+  --accent-sky: #3b82f6;
+  --accent-cyan: #0ea5e9;
+  --accent-green: #16a34a;
+  --accent-green-soft: #dcfce7;
+  --accent-red: #dc2626;
+  --accent-red-soft: #fef2f2;
+  --accent-amber: #d97706;
+  --accent-amber-soft: #fff7ed;
+
+  --shadow-soft: 0 16px 40px rgba(30, 64, 175, 0.08);
+  --shadow-card: 0 10px 24px rgba(15, 32, 70, 0.08);
+  --shadow-pressed: 0 0 0 3px rgba(59, 130, 246, 0.12);
+
+  --radius-panel: 22px;
+  --radius-card: 18px;
+  --radius-chip: 999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--text-main);
+  background:
+    radial-gradient(circle at top left, rgba(219, 234, 254, 0.9), transparent 34%),
+    radial-gradient(circle at top right, rgba(191, 219, 254, 0.8), transparent 28%),
+    linear-gradient(180deg, var(--bg-page) 0%, var(--bg-page-strong) 100%);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  background: none;
+}
+
+a {
+  color: inherit;
+}
