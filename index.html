@@ -181,6 +181,7 @@ main{flex:1;display:flex;overflow:hidden;}
 .blk-kicker{font-size:9px;font-weight:700;letter-spacing:0.55px;text-transform:uppercase;color:currentColor;opacity:0.82;margin-bottom:2px;}
 .node-port{position:absolute;display:flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:2px solid currentColor;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,0.78);pointer-events:auto;cursor:crosshair;z-index:2;transform:translate(-50%,-50%);padding:0;appearance:none;outline:none;}
 .node-port--output{background:currentColor;border-color:#fff;box-shadow:0 0 0 2px color-mix(in srgb,currentColor 24%,transparent);}
+.node-port--top{background:#fff;border-color:currentColor;box-shadow:0 0 0 3px rgba(255,255,255,0.9),0 6px 14px rgba(56,189,248,0.14);}
 .node-port--active{box-shadow:0 0 0 5px color-mix(in srgb,currentColor 18%,transparent);}
 .node-port__inner{width:4px;height:4px;border-radius:50%;background:currentColor;}
 .fbadge{position:absolute;top:-7px;right:-7px;width:15px;height:15px;background:var(--red);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;box-shadow:0 1px 4px rgba(220,38,38,0.45);}
@@ -251,9 +252,9 @@ main{flex:1;display:flex;overflow:hidden;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
 
 /* ── 右侧属性面板 ── */
-.rpanel{width:210px;flex-shrink:0;background:var(--bg-panel);border-left:1.5px solid var(--border);display:flex;flex-direction:column;}
+.rpanel{width:232px;flex-shrink:0;background:var(--bg-panel);border-left:1.5px solid var(--border);display:flex;flex-direction:column;}
 .ph{padding:10px 14px 8px;font-size:10px;font-weight:600;letter-spacing:0.6px;color:var(--textm);text-transform:uppercase;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-card);}
-.props-body{flex:1;overflow-y:auto;padding:14px 12px;}
+.props-body{flex:1;overflow-y:auto;padding:16px 14px;}
 .props-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--textm);font-size:12px;text-align:center;}
 .pgroup{margin-bottom:18px;}
 .pglbl{font-size:9px;color:var(--textd);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;font-weight:600;}
@@ -276,6 +277,16 @@ main{flex:1;display:flex;overflow:hidden;}
 .props-field select:focus,
 .props-field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(74,158,255,0.12);}
 .props-help{font-size:10px;color:var(--textm);line-height:1.7;}
+.sim-intf-toolbar{display:flex;flex-direction:column;gap:10px;}
+.sim-intf-counts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sim-intf-counts .props-field:last-child{grid-column:1 / -1;}
+.sim-intf-group{border:1px solid rgba(174,194,221,0.72);border-radius:12px;background:linear-gradient(180deg,rgba(252,254,255,0.98),rgba(246,250,255,0.92));padding:12px 12px 13px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 14px rgba(30,58,95,0.04);}
+.sim-intf-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.sim-intf-title{font-size:11px;font-weight:700;color:var(--text);}
+.sim-intf-meta{font-size:10px;color:var(--textm);padding:3px 8px;border-radius:999px;background:rgba(221,234,252,0.78);}
+.sim-intf-list{display:flex;flex-direction:column;gap:9px;}
+.sim-intf-row{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,0.88fr);gap:10px;align-items:end;}
+.sim-intf-note{font-size:10px;color:var(--textm);line-height:1.6;}
 .props-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
 .props-save{width:100%;padding:9px 12px;border:none;border-radius:7px;background:var(--red);color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:background 0.18s,transform 0.18s;}
 .props-save:hover{background:#b91c1c;}
@@ -460,7 +471,7 @@ body{font-family:"Microsoft YaHei UI","Segoe UI","PingFang SC",sans-serif;}
   .tbtn{padding:6px 10px;font-size:11px;}
   .logo{width:var(--sidebar-w-md);}
   .lpanel{width:var(--sidebar-w-md);}
-  .rpanel{width:220px;}
+  .rpanel{width:236px;}
 }
 
 @media (max-width:980px){
@@ -1092,6 +1103,8 @@ const CANVAS_PAN={active:false,pointerId:null,startX:0,startY:0,originX:0,origin
 const NODE_DOUBLE_CLICK={nodeId:'',timestamp:0};
 
 const PORT_FORMATS=['标量','向量','矩阵','布尔','事件'];
+const SIM_MODULE_TYPES=['一阶函数','微分','积分'];
+const SIM_INTERFACE_LIMITS={inputs:[1,6],outputs:[1,6],middleVars:[0,6]};
 
 const COMPONENT_LIBRARY={
   signal_source:{
@@ -1116,7 +1129,14 @@ const COMPONENT_LIBRARY={
     className:'b-sim',
     width:174,
     height:92,
-    defaults:{name:'仿真块',moduleType:'一阶函数',inputFormat:'标量',outputFormat:'标量',functionNote:'当前预留函数编辑能力，默认使用基础模块。'}
+    defaults:{
+      name:'仿真块',
+      moduleType:'一阶函数',
+      inputs:[{name:'输入 1',type:'标量'}],
+      outputs:[{name:'输出 1',type:'标量'}],
+      middleVars:[{name:'中间量 1',type:'标量'}],
+      functionNote:'当前预留 Python 函数接口，可在后续导入函数定义。'
+    }
   },
   fault_bias:{
     label:'偏置叠加块',
@@ -1331,6 +1351,195 @@ function escapeHtml(value){
     .replace(/'/g,'&#39;');
 }
 
+function clampInterfaceCount(value,[min,max]){
+  const parsed=Number.parseInt(value,10);
+  if(!Number.isFinite(parsed)){return min;}
+  return clamp(parsed,min,max);
+}
+
+function normalizeSimulationInterfaceList(items,prefix,fallbackType,minCount=0){
+  const base=Array.isArray(items)?items:[];
+  const normalized=base
+    .map((item,index)=>({
+      name:String(item?.name||`${prefix} ${index+1}`).trim()||`${prefix} ${index+1}`,
+      type:PORT_FORMATS.includes(item?.type)?item.type:(fallbackType||'标量')
+    }))
+    .filter(Boolean);
+  while(normalized.length<minCount){
+    normalized.push({
+      name:`${prefix} ${normalized.length+1}`,
+      type:fallbackType||'标量'
+    });
+  }
+  return normalized;
+}
+
+function normalizeSimulationInterfaces(props){
+  const inputFallback=PORT_FORMATS.includes(props?.inputFormat)?props.inputFormat:'标量';
+  const outputFallback=PORT_FORMATS.includes(props?.outputFormat)?props.outputFormat:'标量';
+  props.inputs=normalizeSimulationInterfaceList(props?.inputs,'输入',inputFallback,1);
+  props.outputs=normalizeSimulationInterfaceList(props?.outputs,'输出',outputFallback,1);
+  props.middleVars=normalizeSimulationInterfaceList(props?.middleVars,'中间量',outputFallback,0);
+  if(!props.middleVars.length&&props?.inputFormat){
+    props.middleVars=[{name:'中间量 1',type:outputFallback}];
+  }
+  if(!props.functionNote){
+    props.functionNote='当前预留 Python 函数接口，可在后续导入函数定义。';
+  }
+  delete props.inputFormat;
+  delete props.outputFormat;
+  return props;
+}
+
+function getSimulationPortSets(props){
+  normalizeSimulationInterfaces(props);
+  return {
+    inputs:props.inputs,
+    outputs:props.outputs,
+    middleVars:props.middleVars
+  };
+}
+
+function getSimulationNodeSize(props){
+  const groups=getSimulationPortSets(props);
+  const leftCount=Math.max(groups.inputs.length,1);
+  const rightCount=Math.max(groups.outputs.length,1);
+  const topCount=groups.middleVars.length;
+  const verticalDominant=Math.max(leftCount,rightCount);
+  return {
+    width:clamp(196+Math.max(0,topCount-2)*28,196,336),
+    height:clamp(116+Math.max(0,verticalDominant-2)*22+(topCount?18:0),116,312)
+  };
+}
+
+function applyNodeGeometry(node){
+  if(!node){return;}
+  if(node.type==='simulation_block'){
+    normalizeSimulationInterfaces(node.props);
+    const size=getSimulationNodeSize(node.props);
+    node.w=size.width;
+    node.h=size.height;
+  }else{
+    const meta=COMPONENT_LIBRARY[node.type];
+    if(meta){
+      node.w=meta.width;
+      node.h=meta.height;
+    }
+  }
+  node.x=clamp(node.x,CANVAS_STAGE.nodePadding,CANVAS_STAGE.width-node.w-CANVAS_STAGE.nodePadding);
+  node.y=clamp(node.y,CANVAS_STAGE.nodeMinY,CANVAS_STAGE.height-node.h-CANVAS_STAGE.nodePadding);
+}
+
+function pruneInvalidEdgesForNode(node){
+  const ports=getNodePorts(node);
+  const outputCount=ports.outputs.length;
+  const inputCount=ports.inputs.length;
+  const removed=S.modelEdges.filter(edge=>{
+    if(edge.sourceNodeId===node.id&&(edge.sourcePortIndex||0)>=outputCount){return true;}
+    if(edge.targetNodeId===node.id&&(edge.targetPortIndex||0)>=inputCount){return true;}
+    return false;
+  });
+  if(!removed.length){return 0;}
+  const removedIds=new Set(removed.map(edge=>edge.id));
+  S.modelEdges=S.modelEdges.filter(edge=>!removedIds.has(edge.id));
+  if(S.selEdge&&removedIds.has(S.selEdge)){S.selEdge=null;}
+  if(S.protocolInjectTargetId&&removedIds.has(S.protocolInjectTargetId)){
+    S.protocolInjectTargetId='';
+    S.protocolInjectSelectionMode='';
+    S.protocolInjectSelectionId='';
+  }
+  return removed.length;
+}
+
+function getSimulationFlatOutputs(props){
+  const groups=getSimulationPortSets(props);
+  return [
+    ...groups.outputs.map((item,index)=>({kind:'output',name:item.name,type:item.type,index,side:'right'})),
+    ...groups.middleVars.map((item,index)=>({kind:'middle',name:item.name,type:item.type,index,side:'top'}))
+  ];
+}
+
+function buildSimulationInterfaceRows(items,prefix){
+  return items.map((item,index)=>`
+    <div class="sim-intf-row" data-role="${prefix}" data-index="${index}">
+      <div class="props-field">
+        <label>${prefix}名称 ${index+1}</label>
+        <input data-sim-field="name" value="${escapeHtml(item.name)}">
+      </div>
+      <div class="props-field">
+        <label>${prefix}类型</label>
+        <select data-sim-field="type">${buildSelectOptions(PORT_FORMATS,item.type)}</select>
+      </div>
+    </div>`).join('');
+}
+
+function buildSimulationBlockFields(node){
+  normalizeSimulationInterfaces(node.props);
+  return `
+    <div class="pgroup">
+      <div class="pglbl">仿真接口</div>
+      <div class="props-field"><label>模块名称</label><input id="prop-name" value="${escapeHtml(node.props.name)}"></div>
+      <div class="props-field"><label>模块类型</label><select id="prop-moduleType">${buildSelectOptions(SIM_MODULE_TYPES,node.props.moduleType)}</select></div>
+      <div class="sim-intf-toolbar">
+        <div class="sim-intf-counts">
+          <div class="props-field"><label>输入数量</label><input id="sim-input-count" type="number" min="${SIM_INTERFACE_LIMITS.inputs[0]}" max="${SIM_INTERFACE_LIMITS.inputs[1]}" value="${node.props.inputs.length}"></div>
+          <div class="props-field"><label>输出数量</label><input id="sim-output-count" type="number" min="${SIM_INTERFACE_LIMITS.outputs[0]}" max="${SIM_INTERFACE_LIMITS.outputs[1]}" value="${node.props.outputs.length}"></div>
+          <div class="props-field"><label>中间变量数量</label><input id="sim-middle-count" type="number" min="${SIM_INTERFACE_LIMITS.middleVars[0]}" max="${SIM_INTERFACE_LIMITS.middleVars[1]}" value="${node.props.middleVars.length}"></div>
+        </div>
+        <button class="props-secondary" type="button" onclick="syncSimulationInterfaceCounts()">同步接口数量</button>
+        <div class="sim-intf-note">中间变量当前会挂在模块上方，作为辅助观察端口使用；输入仍在左侧，主输出仍在右侧。</div>
+      </div>
+    </div>
+    <div class="sim-intf-group">
+      <div class="sim-intf-head">
+        <div class="sim-intf-title">输入接口</div>
+        <div class="sim-intf-meta">${node.props.inputs.length} 个左侧端口</div>
+      </div>
+      <div class="sim-intf-list">${buildSimulationInterfaceRows(node.props.inputs,'输入')}</div>
+    </div>
+    <div class="sim-intf-group">
+      <div class="sim-intf-head">
+        <div class="sim-intf-title">输出接口</div>
+        <div class="sim-intf-meta">${node.props.outputs.length} 个右侧主输出</div>
+      </div>
+      <div class="sim-intf-list">${buildSimulationInterfaceRows(node.props.outputs,'输出')}</div>
+    </div>
+    <div class="sim-intf-group">
+      <div class="sim-intf-head">
+        <div class="sim-intf-title">中间变量</div>
+        <div class="sim-intf-meta">${node.props.middleVars.length} 个顶部辅助端口</div>
+      </div>
+      <div class="sim-intf-list">${node.props.middleVars.length?buildSimulationInterfaceRows(node.props.middleVars,'中间量'):'<div class="sim-intf-note">当前未暴露中间变量端口，可先调整数量后再同步。</div>'}</div>
+    </div>
+    <div class="props-field"><label>函数说明</label><textarea id="prop-functionNote">${escapeHtml(node.props.functionNote)}</textarea></div>
+    <div class="props-help">后续这里会接入 Python 函数导入能力。当前版本先支持接口编排、端口连线和基础模块运行时。</div>`;
+}
+
+function readSimulationInterfaceRows(role){
+  return [...document.querySelectorAll(`.sim-intf-row[data-role="${role}"]`)].map((row,index)=>({
+    name:(row.querySelector('[data-sim-field="name"]')?.value||`${role} ${index+1}`).trim()||`${role} ${index+1}`,
+    type:row.querySelector('[data-sim-field="type"]')?.value||'标量'
+  }));
+}
+
+function syncSimulationInterfaceCounts(){
+  const node=getNode(S.selBlk);
+  if(!node||node.type!=='simulation_block'){return;}
+  const nextProps=cloneDefaults(node.props);
+  nextProps.inputs=readSimulationInterfaceRows('输入');
+  nextProps.outputs=readSimulationInterfaceRows('输出');
+  nextProps.middleVars=readSimulationInterfaceRows('中间量');
+  normalizeSimulationInterfaces(nextProps);
+  const inputCount=clampInterfaceCount(document.getElementById('sim-input-count')?.value,SIM_INTERFACE_LIMITS.inputs);
+  const outputCount=clampInterfaceCount(document.getElementById('sim-output-count')?.value,SIM_INTERFACE_LIMITS.outputs);
+  const middleCount=clampInterfaceCount(document.getElementById('sim-middle-count')?.value,SIM_INTERFACE_LIMITS.middleVars);
+  nextProps.inputs=normalizeSimulationInterfaceList(nextProps.inputs.slice(0,inputCount),'输入',nextProps.inputs[0]?.type||'标量',inputCount);
+  nextProps.outputs=normalizeSimulationInterfaceList(nextProps.outputs.slice(0,outputCount),'输出',nextProps.outputs[0]?.type||'标量',outputCount);
+  nextProps.middleVars=normalizeSimulationInterfaceList(nextProps.middleVars.slice(0,middleCount),'中间量',nextProps.middleVars[0]?.type||'标量',middleCount);
+  const preview={...node,props:nextProps};
+  renderPropertyPanel(preview);
+}
+
 function getNode(id){
   return S.modelNodes.find(node=>node.id===id);
 }
@@ -1537,9 +1746,21 @@ function getNodePorts(node){
     };
   }
   if(node.type==='simulation_block'){
+    const groups=getSimulationPortSets(node.props);
     return {
-      inputs:[{key:'input',label:'输入'}],
-      outputs:[{key:'output',label:'输出'}]
+      inputs:groups.inputs.map((item,index)=>({
+        key:`input-${index}`,
+        label:`输入 ${index+1} · ${item.name} / ${item.type}`,
+        kind:'input',
+        side:'left'
+      })),
+      outputs:getSimulationFlatOutputs(node.props).map((item,index)=>({
+        key:`${item.kind}-${item.index}`,
+        label:`${item.kind==='middle'?'中间量':'输出'} ${item.index+1} · ${item.name} / ${item.type}`,
+        kind:item.kind,
+        side:item.side,
+        portIndex:index
+      }))
     };
   }
   if(node.type.startsWith('fault_')){
@@ -1561,13 +1782,26 @@ function getPortInfo(node,direction,index=0){
   const ports=getNodePorts(node)[direction==='input'?'inputs':'outputs'];
   const port=ports[index];
   if(!port){return null;}
-  const total=Math.max(ports.length,1);
-  const gap=node.h/(total+1);
-  const localY=Math.round(gap*(index+1));
-  const localX=direction==='input'?0:node.w;
+  const side=port.side||(direction==='input'?'left':'right');
+  let localX=direction==='input'?0:node.w;
+  let localY=Math.round(node.h/2);
+  if(side==='top'){
+    const topPorts=ports.filter(item=>(item.side||'right')==='top');
+    const topIndex=topPorts.findIndex(item=>item.key===port.key);
+    const topGap=node.w/(Math.max(topPorts.length,1)+1);
+    localX=Math.round(topGap*(topIndex+1));
+    localY=0;
+  }else{
+    const sidePorts=ports.filter(item=>(item.side||(direction==='input'?'left':'right'))===side);
+    const sideIndex=sidePorts.findIndex(item=>item.key===port.key);
+    const gap=node.h/(Math.max(sidePorts.length,1)+1);
+    localY=Math.round(gap*(sideIndex+1));
+    localX=side==='left'?0:node.w;
+  }
   return {
     ...port,
     direction,
+    side,
     index,
     localX,
     localY,
@@ -1577,10 +1811,17 @@ function getPortInfo(node,direction,index=0){
 }
 
 function buildEdgePath(start,end){
-  const delta=Math.max(64,Math.abs(end.x-start.x)*0.45);
-  const cp1x=start.x+delta;
-  const cp2x=end.x-delta;
-  return `M ${start.x} ${start.y} C ${cp1x} ${start.y}, ${cp2x} ${end.y}, ${end.x} ${end.y}`;
+  const deltaX=Math.max(64,Math.abs(end.x-start.x)*0.42);
+  const deltaY=Math.max(48,Math.abs(end.y-start.y)*0.38);
+  const cp1={
+    x:start.side==='right'?start.x+deltaX:(start.side==='left'?start.x-deltaX:start.x),
+    y:start.side==='top'?start.y-deltaY:start.y
+  };
+  const cp2={
+    x:end.side==='right'?end.x+deltaX:(end.side==='left'?end.x-deltaX:end.x),
+    y:end.side==='top'?end.y-deltaY:end.y
+  };
+  return `M ${start.x} ${start.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${end.x} ${end.y}`;
 }
 
 function clientToStagePoint(clientX,clientY){
@@ -1721,7 +1962,8 @@ function buildNodeSubtitle(node){
     case 'flow_block':
       return `${props.inputName} / ${props.inputFormat} → ${props.outputName} / ${props.outputFormat}${faultNote}`;
     case 'simulation_block':
-      return `${props.moduleType} · ${props.inputFormat} → ${props.outputFormat}${faultNote}`;
+      normalizeSimulationInterfaces(props);
+      return `${props.inputs.length}入 · ${props.outputs.length}出 · ${props.middleVars.length}中间 · ${props.moduleType}${faultNote}`;
     case 'fault_bias':
     case 'fault_noise':
     case 'fault_stuck':
@@ -1929,6 +2171,7 @@ function renderModelNodes(){
   if(!layer){return;}
   layer.innerHTML='';
   S.modelNodes.forEach(node=>{
+    applyNodeGeometry(node);
     const meta=COMPONENT_LIBRARY[node.type];
     const faulted=S.faultedBlks.includes(node.id)||Boolean(node.injectedFault);
     const el=document.createElement('div');
@@ -1938,6 +2181,14 @@ function renderModelNodes(){
     el.style.top=`${node.y}px`;
     el.style.width=`${node.w}px`;
     el.style.height=`${node.h}px`;
+    if(node.type==='simulation_block'){
+      const topPortCount=node.props.middleVars?.length||0;
+      el.style.paddingTop=`${topPortCount?18:10}px`;
+      el.style.paddingBottom='10px';
+    }else{
+      el.style.paddingTop='';
+      el.style.paddingBottom='';
+    }
     el.innerHTML=`
       <div class="fbadge">F</div>
       <div class="blk-kicker">${faulted&&!isFaultNodeType(node.type)?`${meta.badge} · 故障` : meta.badge}</div>
@@ -1988,10 +2239,10 @@ function renderModelNodes(){
       const info=getPortInfo(node,'output',index);
       const portEl=document.createElement('button');
       portEl.type='button';
-      portEl.className='node-port node-port--output';
+      portEl.className=`node-port node-port--output${info.side==='top'?' node-port--top':''}`;
       portEl.style.left=`${info.localX}px`;
       portEl.style.top=`${info.localY}px`;
-      portEl.style.color=node.type==='signal_source'?'#4f86e7':'#6da0ff';
+      portEl.style.color=port.kind==='middle'?'#4b9cb8':(node.type==='signal_source'?'#4f86e7':'#6da0ff');
       portEl.title=port.label;
       if(S.pendingConnection&&S.pendingConnection.sourceNodeId===node.id&&(S.pendingConnection.sourcePortIndex||0)===index){
         portEl.classList.add('node-port--active');
@@ -2118,17 +2369,21 @@ function createNode(type,rawX,rawY){
   if(type.startsWith('instrument_')){props.name=`${meta.label} ${count}`;}
   if(type.startsWith('link_')){props.name=`${meta.label} ${count}`;}
 
+  if(type==='simulation_block'){
+    normalizeSimulationInterfaces(props);
+  }
+  const size=type==='simulation_block'?getSimulationNodeSize(props):{width:meta.width,height:meta.height};
   const point={
-    x:clamp(Math.round(rawX-meta.width/2),CANVAS_STAGE.nodePadding,CANVAS_STAGE.width-meta.width-CANVAS_STAGE.nodePadding),
-    y:clamp(Math.round(rawY-meta.height/2),CANVAS_STAGE.nodeMinY,CANVAS_STAGE.height-meta.height-CANVAS_STAGE.nodePadding)
+    x:clamp(Math.round(rawX-size.width/2),CANVAS_STAGE.nodePadding,CANVAS_STAGE.width-size.width-CANVAS_STAGE.nodePadding),
+    y:clamp(Math.round(rawY-size.height/2),CANVAS_STAGE.nodeMinY,CANVAS_STAGE.height-size.height-CANVAS_STAGE.nodePadding)
   };
   S.modelNodes.push({
     id:`node-${++S.nodeSeq}`,
     type,
     x:point.x,
     y:point.y,
-    w:meta.width,
-    h:meta.height,
+    w:size.width,
+    h:size.height,
     props
   });
   markTopologyDirty(getMutationScopeForType(type));
@@ -2372,18 +2627,7 @@ function renderPropertyPanel(node){
         <div class="props-help">流程块用于定义系统中的输入、输出以及接口格式。</div>
       </div>`;
   }else if(node.type==='simulation_block'){
-    fields=`
-      <div class="pgroup">
-        <div class="pglbl">仿真定义</div>
-        <div class="props-field"><label>模块名称</label><input id="prop-name" value="${escapeHtml(node.props.name)}"></div>
-        <div class="props-field"><label>模块类型</label><select id="prop-moduleType">${buildSelectOptions(['一阶函数','微分','积分'],node.props.moduleType)}</select></div>
-        <div class="props-row">
-          <div class="props-field"><label>输入格式</label><select id="prop-inputFormat">${buildSelectOptions(PORT_FORMATS,node.props.inputFormat)}</select></div>
-          <div class="props-field"><label>输出格式</label><select id="prop-outputFormat">${buildSelectOptions(PORT_FORMATS,node.props.outputFormat)}</select></div>
-        </div>
-        <div class="props-field"><label>函数说明</label><textarea id="prop-functionNote">${escapeHtml(node.props.functionNote)}</textarea></div>
-        <div class="props-help">当前先保留基础模块选择，后续可扩展为可编辑的函数表达式或脚本。</div>
-      </div>`;
+    fields=buildSimulationBlockFields(node);
   }else if(node.type.startsWith('fault_')){
     fields=`
       <div class="pgroup">
@@ -2465,9 +2709,31 @@ function saveSelectedNode(){
   }else if(node.type==='simulation_block'){
     node.props.name=document.getElementById('prop-name').value.trim()||node.props.name;
     node.props.moduleType=document.getElementById('prop-moduleType').value;
-    node.props.inputFormat=document.getElementById('prop-inputFormat').value;
-    node.props.outputFormat=document.getElementById('prop-outputFormat').value;
-    node.props.functionNote=document.getElementById('prop-functionNote').value.trim()||'当前预留函数编辑能力，默认使用基础模块。';
+    node.props.inputs=readSimulationInterfaceRows('输入');
+    node.props.outputs=readSimulationInterfaceRows('输出');
+    node.props.middleVars=readSimulationInterfaceRows('中间量');
+    normalizeSimulationInterfaces(node.props);
+    node.props.inputs=normalizeSimulationInterfaceList(
+      node.props.inputs.slice(0,clampInterfaceCount(document.getElementById('sim-input-count')?.value,SIM_INTERFACE_LIMITS.inputs)),
+      '输入',
+      node.props.inputs[0]?.type||'标量',
+      clampInterfaceCount(document.getElementById('sim-input-count')?.value,SIM_INTERFACE_LIMITS.inputs)
+    );
+    node.props.outputs=normalizeSimulationInterfaceList(
+      node.props.outputs.slice(0,clampInterfaceCount(document.getElementById('sim-output-count')?.value,SIM_INTERFACE_LIMITS.outputs)),
+      '输出',
+      node.props.outputs[0]?.type||'标量',
+      clampInterfaceCount(document.getElementById('sim-output-count')?.value,SIM_INTERFACE_LIMITS.outputs)
+    );
+    node.props.middleVars=normalizeSimulationInterfaceList(
+      node.props.middleVars.slice(0,clampInterfaceCount(document.getElementById('sim-middle-count')?.value,SIM_INTERFACE_LIMITS.middleVars)),
+      '中间量',
+      node.props.middleVars[0]?.type||'标量',
+      clampInterfaceCount(document.getElementById('sim-middle-count')?.value,SIM_INTERFACE_LIMITS.middleVars)
+    );
+    node.props.functionNote=document.getElementById('prop-functionNote').value.trim()||'当前预留 Python 函数接口，可在后续导入函数定义。';
+    applyNodeGeometry(node);
+    pruneInvalidEdgesForNode(node);
   }else if(node.type.startsWith('fault_')){
     node.props.name=document.getElementById('prop-name').value.trim()||node.props.name;
     node.props.faultType=document.getElementById('prop-faultType').value.trim()||node.props.faultType;
@@ -3094,7 +3360,17 @@ function ensureScopeSelection(preferredId=''){
 
 function ensureNodeRuntime(bucket,node){
   if(!bucket.nodeStates[node.id]){
-    bucket.nodeStates[node.id]={lastOutput:0,lastInput:0,prevInput:0,integrator:0,firstOrder:0};
+    bucket.nodeStates[node.id]={
+      lastOutput:0,
+      lastInput:0,
+      lastOutputs:[0],
+      lastInputValues:[],
+      lastMiddleValues:[],
+      prevInput:0,
+      prevAggregateInput:0,
+      integrator:0,
+      firstOrder:0
+    };
   }
   return bucket.nodeStates[node.id];
 }
@@ -3296,61 +3572,138 @@ function transmitEdgeSignal(edge,value,modeKey,time){
   return nextValue;
 }
 
-function resolveNodeInput(node,modeKey,time,dt,cache,visiting){
-  const incoming=getIncomingEdgesForNode(node.id);
-  if(!incoming.length){return 0;}
-  const edge=incoming[0];
-  const upstream=resolveNodeSignal(edge.sourceNodeId,modeKey,time,dt,cache,visiting);
-  return transmitEdgeSignal(edge,upstream,modeKey,time);
+function sanitizeSignalValue(value){
+  return Number.isFinite(value)?value:0;
 }
 
-function resolveNodeSignal(nodeId,modeKey,time,dt,cache,visiting){
+function resolveNodeInputValues(node,modeKey,time,dt,cache,visiting){
+  const inputPorts=getNodePorts(node).inputs;
+  if(!inputPorts.length){return [];}
+  const incoming=getIncomingEdgesForNode(node.id);
+  return inputPorts.map((_,portIndex)=>{
+    const edge=incoming.find(item=>(item.targetPortIndex||0)===portIndex);
+    if(!edge){return 0;}
+    const upstream=resolveNodeOutput(edge.sourceNodeId,edge.sourcePortIndex||0,modeKey,time,dt,cache,visiting);
+    return transmitEdgeSignal(edge,upstream,modeKey,time);
+  });
+}
+
+function buildSimulationResult(node,nodeState,inputValues,modeKey,time,dt){
+  normalizeSimulationInterfaces(node.props);
+  const primaryInput=sanitizeSignalValue(inputValues[0]||0);
+  const aggregateInput=inputValues.length
+    ?inputValues.reduce((sum,value)=>sum+sanitizeSignalValue(value),0)
+    :0;
+  const activeInput=inputValues.length>1?aggregateInput:primaryInput;
+  let coreOutput=0;
+  let stateValue=0;
+
+  if(node.props.moduleType==='微分'){
+    coreOutput=(activeInput-(nodeState.prevAggregateInput||0))/Math.max(dt,0.001);
+    stateValue=activeInput;
+  }else if(node.props.moduleType==='积分'){
+    nodeState.integrator=(nodeState.integrator||0)+activeInput*dt;
+    coreOutput=nodeState.integrator;
+    stateValue=nodeState.integrator;
+  }else{
+    const tau=1;
+    const previous=nodeState.firstOrder||0;
+    const alpha=dt/(tau+dt);
+    coreOutput=previous+alpha*(activeInput-previous);
+    nodeState.firstOrder=coreOutput;
+    stateValue=nodeState.firstOrder;
+  }
+
+  nodeState.prevInput=primaryInput;
+  nodeState.prevAggregateInput=activeInput;
+  if(modeKey==='actual'){
+    coreOutput=applyElectricalFault(node,activeInput,coreOutput,time);
+  }
+
+  const outputValues=node.props.outputs.map((_,index)=>{
+    if(index===0){return sanitizeSignalValue(coreOutput);}
+    if(index===1){return sanitizeSignalValue(stateValue);}
+    if(index===2){return sanitizeSignalValue(aggregateInput);}
+    return sanitizeSignalValue(coreOutput+(index*0.12*aggregateInput));
+  });
+
+  const middleValues=node.props.middleVars.map((_,index)=>{
+    if(index===0){return sanitizeSignalValue(primaryInput);}
+    if(index===1){return sanitizeSignalValue(aggregateInput);}
+    if(index===2){return sanitizeSignalValue(stateValue);}
+    if(index===3){return sanitizeSignalValue(coreOutput);}
+    return sanitizeSignalValue((coreOutput+aggregateInput+primaryInput)/(index+1));
+  });
+
+  return {outputs:outputValues,middleValues};
+}
+
+function resolveNodeOutputs(nodeId,modeKey,time,dt,cache,visiting){
   if(cache.has(nodeId)){return cache.get(nodeId);}
   const node=getNode(nodeId);
-  if(!node){return 0;}
+  if(!node){
+    return {outputs:[0],middleValues:[]};
+  }
   const bucket=modeKey==='reference'?SIM.reference:SIM.actual;
   const nodeState=ensureNodeRuntime(bucket,node);
   if(visiting.has(nodeId)){
-    return nodeState.lastOutput||0;
+    return {
+      outputs:nodeState.lastOutputs?.length?nodeState.lastOutputs:[nodeState.lastOutput||0],
+      middleValues:nodeState.lastMiddleValues||[]
+    };
   }
   visiting.add(nodeId);
-  const inputValue=resolveNodeInput(node,modeKey,time,dt,cache,visiting);
-  let outputValue=0;
+  const inputValues=resolveNodeInputValues(node,modeKey,time,dt,cache,visiting);
+  let resolved={outputs:[0],middleValues:[]};
 
   if(node.type==='signal_source'){
-    outputValue=computeSourceSignal(node,time);
+    resolved={outputs:[computeSourceSignal(node,time)],middleValues:[]};
   }else if(node.type==='flow_block'){
-    outputValue=modeKey==='actual'?applyElectricalFault(node,inputValue,inputValue,time):inputValue;
+    const passthrough=sanitizeSignalValue(inputValues[0]||0);
+    resolved={outputs:[modeKey==='actual'?applyElectricalFault(node,passthrough,passthrough,time):passthrough],middleValues:[]};
   }else if(node.type==='simulation_block'){
-    if(node.props.moduleType==='微分'){
-      outputValue=(inputValue-nodeState.prevInput)/Math.max(dt,0.001);
-    }else if(node.props.moduleType==='积分'){
-      nodeState.integrator=(nodeState.integrator||0)+inputValue*dt;
-      outputValue=nodeState.integrator;
-    }else{
-      const tau=1;
-      const previous=nodeState.firstOrder||0;
-      const alpha=dt/(tau+dt);
-      outputValue=previous+alpha*(inputValue-previous);
-      nodeState.firstOrder=outputValue;
-    }
-    nodeState.prevInput=inputValue;
-    if(modeKey==='actual'){
-      outputValue=applyElectricalFault(node,inputValue,outputValue,time);
-    }
+    resolved=buildSimulationResult(node,nodeState,inputValues,modeKey,time,dt);
   }else if(node.type.startsWith('fault_')){
-    outputValue=applyPhysicalFaultNode(node,inputValue,time,modeKey);
+    resolved={outputs:[applyPhysicalFaultNode(node,sanitizeSignalValue(inputValues[0]||0),time,modeKey)],middleValues:[]};
   }else if(node.type.startsWith('instrument_')){
-    outputValue=inputValue;
+    resolved={outputs:[sanitizeSignalValue(inputValues[0]||0)],middleValues:[]};
   }else{
-    outputValue=inputValue;
+    resolved={outputs:[sanitizeSignalValue(inputValues[0]||0)],middleValues:[]};
   }
 
-  nodeState.lastInput=inputValue;
-  nodeState.lastOutput=Number.isFinite(outputValue)?outputValue:0;
+  resolved.outputs=(resolved.outputs||[0]).map(sanitizeSignalValue);
+  resolved.middleValues=(resolved.middleValues||[]).map(sanitizeSignalValue);
+  nodeState.lastInputValues=inputValues.slice();
+  nodeState.lastInput=inputValues[0]||0;
+  nodeState.lastOutputs=resolved.outputs.slice();
+  nodeState.lastMiddleValues=resolved.middleValues.slice();
+  nodeState.lastOutput=nodeState.lastOutputs[0]||0;
   visiting.delete(nodeId);
-  cache.set(nodeId,nodeState.lastOutput);
-  return nodeState.lastOutput;
+  cache.set(nodeId,resolved);
+  return resolved;
+}
+
+function resolveNodeOutput(nodeId,outputIndex,modeKey,time,dt,cache,visiting){
+  const node=getNode(nodeId);
+  const resolved=resolveNodeOutputs(nodeId,modeKey,time,dt,cache,visiting);
+  if(!node){return 0;}
+  if(node.type==='simulation_block'){
+    normalizeSimulationInterfaces(node.props);
+    const mainCount=node.props.outputs.length;
+    if(outputIndex<mainCount){
+      return sanitizeSignalValue(resolved.outputs[outputIndex]??resolved.outputs[0]??0);
+    }
+    return sanitizeSignalValue(resolved.middleValues[outputIndex-mainCount]??resolved.outputs[0]??0);
+  }
+  return sanitizeSignalValue(resolved.outputs[outputIndex]??resolved.outputs[0]??0);
+}
+
+function resolveNodeInput(node,modeKey,time,dt,cache,visiting){
+  return resolveNodeInputValues(node,modeKey,time,dt,cache,visiting)[0]||0;
+}
+
+function resolveNodeSignal(nodeId,modeKey,time,dt,cache,visiting){
+  return resolveNodeOutput(nodeId,0,modeKey,time,dt,cache,visiting);
 }
 
 function recordScopeSamples(time,dt){
@@ -3397,7 +3750,13 @@ function startSimulationLoop(){
 function getScopeSignalName(scopeNode){
   const incoming=getIncomingEdgesForNode(scopeNode.id)[0];
   if(!incoming){return '未接入信号';}
-  return getNode(incoming.sourceNodeId)?.props?.name||'上游信号';
+  const sourceNode=getNode(incoming.sourceNodeId);
+  if(!sourceNode){return '上游信号';}
+  const outputPort=getNodePorts(sourceNode).outputs[incoming.sourcePortIndex||0];
+  if(outputPort){
+    return `${sourceNode.props?.name||'上游信号'} · ${outputPort.label}`;
+  }
+  return sourceNode.props?.name||'上游信号';
 }
 
 function updateScopeChrome(){

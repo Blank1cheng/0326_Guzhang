@@ -43,3 +43,34 @@
 - 连线故障与模块故障分离建模，避免协议层故障错误地挂在模块节点上。
 - 协议层注入复用了现有故障模型导入能力，同时保留模板直注，减少重复操作。
 - 过程记录文件已建立，后续每次变更继续增量追加。
+
+## 2026-04-03
+
+### Simulation block interface refactor
+
+- Refactored `simulation_block` from a fixed single-input single-output block into three editable interface groups: `inputs`, `outputs`, `middleVars`.
+- Added dynamic simulation-block sizing so the node height expands with port count instead of staying fixed.
+- Added structured editing in the property panel:
+  - editable counts for inputs / outputs / middle variables
+  - editable name and type for every interface item
+  - interface count sync action before final save
+- Implemented scheme A port exposure:
+  - inputs on the left
+  - outputs on the right
+  - middle variables exposed as auxiliary right-side ports
+- Added edge pruning after interface shrink so removed ports cannot leave invalid dangling connections.
+- Upgraded simulation runtime from single-value propagation to indexed port propagation:
+  - edges now consume `sourcePortIndex` and `targetPortIndex` meaningfully
+  - simulation blocks can read multiple input ports
+  - scopes can observe both main outputs and middle-variable ports
+- Improved scope source labeling so the scope modal can show which upstream output or middle variable is being observed.
+
+### Simulation block layout polish
+
+- Moved `middleVars` ports from the right side to the top edge of the simulation block to separate them visually from main outputs.
+- Updated simulation-block geometry rules so width grows with top-side middle-variable ports, while height continues to grow with left/right interface density.
+- Adjusted edge bezier control points to respect port side direction, so connections from top ports no longer look like right-side outputs.
+- Optimized the right property panel layout for the simulation block:
+  - widened the desktop property sidebar slightly
+  - changed interface-count controls from 3 cramped columns to a 2-column layout with the third field spanning full width
+  - improved interface-group card styling for clearer visual separation
